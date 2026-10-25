@@ -1,0 +1,4 @@
+Create a Rust project using eframe/egui that opens an empty window with
+tabs: Overview, Playstyle, Training, Analysis, Tablet, Data, Settings.
+Each tab shows its own name. Pin crate versions. It must run on Arch
+Linux. Run it and confirm it builds.
