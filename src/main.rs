@@ -1,3 +1,8 @@
+mod config;
+mod db;
+mod replay;
+mod scan;
+
 use eframe::egui;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -63,7 +68,25 @@ impl eframe::App for App {
     }
 }
 
+/// `cargo run -- scan`: index the lazer folder and print a summary.
+fn run_scan() -> Result<(), String> {
+    let cfg = config::load_or_create(&config::config_path())?;
+    let lazer = config::resolve_lazer_path(&cfg, &config::default_candidates())
+        .ok_or("lazer folder not found; set lazer_path in ~/.config/osu-analyzer/config.toml")?;
+    let mut conn = db::open(&config::cache_db_path()).map_err(|e| e.to_string())?;
+    let result = scan::scan(&mut conn, &lazer, &cfg)?;
+    scan::print_summary(&conn, &result);
+    Ok(())
+}
+
 fn main() -> eframe::Result {
+    if std::env::args().nth(1).as_deref() == Some("scan") {
+        if let Err(e) = run_scan() {
+            eprintln!("scan failed: {e}");
+            std::process::exit(1);
+        }
+        return Ok(());
+    }
     let options = eframe::NativeOptions::default();
     eframe::run_native(
         "osu! Replay Analyzer",

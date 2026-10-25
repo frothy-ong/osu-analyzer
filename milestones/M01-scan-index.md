@@ -1,5 +1,5 @@
 # M01: Scan and index
-Status: not started
+Status: built, awaiting user check (needs `cargo test` and `cargo run -- scan` on the real folder)
 Depends on: M00
 Goal: Find every replay and beatmap in the lazer folder and record them in
 SQLite, skipping anything already processed.
@@ -33,5 +33,4 @@ SQLite, skipping anything already processed.
    byte arrays built in the test (no real replays committed).
 
 ## Open questions
-- Which header fields lazer-stored replays actually contain (SPEC section 9,
-  item 4).
+- None. Header fields resolved (see ARCHITECTURE.md, Verified replay layout).
