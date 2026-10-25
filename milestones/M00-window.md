@@ -1,5 +1,5 @@
 # M00: Window and tabs
-Status: not started
+Status: built, awaiting user check (cargo build passes, window opens, tabs clickable)
 Depends on: none
 Goal: A native window that opens on Arch Linux with empty tabs.
 

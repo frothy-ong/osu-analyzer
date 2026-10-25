@@ -6,7 +6,7 @@ Mark each item PLANNED until it exists in the code, then change to DONE.
 ## Modules
 | Module | Purpose | Status |
 |---|---|---|
-| src/main.rs | app entry, egui window, tab shell | PLANNED |
+| src/main.rs | app entry, egui window, tab shell (7 empty tabs) | DONE (M00, not yet user-checked) |
 | src/config | config file, lazer path detection | PLANNED |
 | src/scan | walk files/, identify by content, incremental index | PLANNED |
 | src/replay | replay header + frame decoding | PLANNED |
@@ -34,7 +34,10 @@ and record why under Decisions.
   sim_nmiss, matches_header INTEGER): the oracle test results from M02.
 
 ## Decisions
-(none yet. Format: date, decision, one-line reason.)
+- 2026-10-25 | Pin eframe = "=0.29.1" (exact) | Matches SPEC stack; exact pin keeps builds repeatable.
+- 2026-10-25 | Tab state is a simple enum in main.rs for now | Smallest thing that meets M00; pages move to src/ui later.
 
 ## Gotchas
-(none yet.)
+- Edition 2024 needs Rust 1.85 or newer. Check with `rustc --version`.
+- Cargo.lock is not included here; `cargo build` regenerates it with the new dependency.
+- Arch: if the build fails on missing windowing libraries, run `sudo pacman -S --needed libxkbcommon wayland libx11`.
