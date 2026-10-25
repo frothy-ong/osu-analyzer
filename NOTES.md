@@ -1,8 +1,8 @@
 # NOTES
 Claude reads this first. The user updates it when stopping.
 
-Current milestone: M00
+Current milestone: M01
 Status: not started
-Last command run: (none)
+Last command run: cargo run
 Last error: (none)
-Next step: start milestones/M00-window.md
+Next step: start milestones/M01-window.md

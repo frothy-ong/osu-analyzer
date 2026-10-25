@@ -3,9 +3,4 @@ target/
 *.osz
 *.db
 *.sqlite
-*.sqlite3target/
-*.osr
-*.osz
-*.db
-*.sqlite
 *.sqlite3

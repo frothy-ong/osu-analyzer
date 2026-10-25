@@ -36,8 +36,9 @@ and record why under Decisions.
 ## Decisions
 - 2026-10-25 | Pin eframe = "=0.29.1" (exact) | Matches SPEC stack; exact pin keeps builds repeatable.
 - 2026-10-25 | Tab state is a simple enum in main.rs for now | Smallest thing that meets M00; pages move to src/ui later.
+- 2026-10-25 | Cargo.lock is committed | App binary; keeps dependency versions repeatable.
 
 ## Gotchas
 - Edition 2024 needs Rust 1.85 or newer. Check with `rustc --version`.
-- Cargo.lock is not included here; `cargo build` regenerates it with the new dependency.
 - Arch: if the build fails on missing windowing libraries, run `sudo pacman -S --needed libxkbcommon wayland libx11`.
+- Stray empty-purpose file `milestones/M00-` is a duplicate of M00-window.md; delete it.
