@@ -1,12 +1,13 @@
 # M02: Hit simulator (make-or-break)
-Status: not started
+Status: done (user-run 2026-10-26: test 1 PASS on 2 circle-only replays; slider maps 95.1% within +-2 misses; 372 replays/s)
 Depends on: M01
 Goal: Turn each replay into per-hit rows (which object, offset in ms, cursor
 position, key, judgement), verified against the replay header counts.
 
-## Decide first (ask the user, then record in ARCHITECTURE.md Decisions)
-1. Are UR and offsets rate-adjusted for DT/HT?
-2. Tolerance for count mismatches.
+## Decided (2026-10-26, recorded in ARCHITECTURE.md Decisions)
+1. UR and offsets are in REAL milliseconds (offset in map time divided by the rate).
+2. Circle-only maps: exact header match for at least 95% of replays. Maps with
+   sliders or spinners: simulated misses within +-2 of the header misses.
 
 ## In scope
 - Write the test harness FIRST.
@@ -14,7 +15,7 @@ position, key, judgement), verified against the replay header counts.
 - Simulate circles and slider heads: hit windows from OD, note lock, Hard
   Rock vertical flip, Easy and HR size and window changes, DT/HT rate scaling.
 - Per-hit rows: score_id, object_index, time_ms, offset_ms, cursor_dx,
-  cursor_dy, key, judgement, local_density, spacing.
+  cursor_dy, key, judgement, local_density, spacing (plus obj_x, obj_y).
 - Store hits and sim_check rows. Bump analyzer_version.
 
 ## Out of scope

@@ -38,7 +38,7 @@ struct Item {
 }
 
 /// Collect every file under files/ (files are stored as files/a/ab/<sha256>).
-fn list_files(root: &Path) -> Vec<PathBuf> {
+pub fn list_files(root: &Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
     let mut stack = vec![root.to_path_buf()];
     while let Some(dir) = stack.pop() {
@@ -129,9 +129,8 @@ pub fn scan(conn: &mut Connection, lazer: &Path, cfg: &Config) -> Result<ScanRes
         return Err(format!("no files/ folder in {lazer:?}"));
     }
     if db::needs_rebuild(conn) {
-        conn.execute_batch("DELETE FROM files; DELETE FROM beatmaps; DELETE FROM replays;")
-            .map_err(|e| e.to_string())?;
-        db::init(conn).map_err(|e| e.to_string())?;
+        println!("Cache was built by an older analyzer version: rebuilding it from scratch.");
+        db::wipe(conn).map_err(|e| e.to_string())?;
     }
     let known = db::known_hashes(conn).map_err(|e| e.to_string())?;
     let all = list_files(&files_dir);
@@ -272,6 +271,25 @@ mod tests {
 
         let r2 = scan(&mut conn, &lazer, &cfg).unwrap();
         assert_eq!(r2.files_parsed_now, 0);
+        let _ = std::fs::remove_dir_all(&lazer);
+    }
+
+    #[test]
+    fn stale_version_wipes_then_rescans() {
+        let lazer = tmp("stale");
+        let sub = lazer.join("files/a/ab");
+        std::fs::create_dir_all(&sub).unwrap();
+        std::fs::write(sub.join("beatmap_hash_1"), OSU).unwrap();
+        let cfg = Config { lazer_path: String::new(), player_name: "fr01hy".into() };
+        let mut conn = Connection::open_in_memory().unwrap();
+        db::init(&conn).unwrap();
+        scan(&mut conn, &lazer, &cfg).unwrap();
+        conn.execute("UPDATE meta SET value='0' WHERE key='analyzer_version'", []).unwrap();
+        let r = scan(&mut conn, &lazer, &cfg).unwrap();
+        assert_eq!(r.files_parsed_now, 1); // re-read after the wipe
+        assert!(!db::needs_rebuild(&conn));
+        let r = scan(&mut conn, &lazer, &cfg).unwrap();
+        assert_eq!(r.files_parsed_now, 0);
         let _ = std::fs::remove_dir_all(&lazer);
     }
 

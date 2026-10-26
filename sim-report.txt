@@ -1,0 +1,167 @@
+   Compiling osu-analyzer v0.1.0 (/home/frothy/projects/osu-analyzer)
+    Finished `release` profile [optimized] target(s) in 2.10s
+     Running `target/release/osu-analyzer sim`
+Cache was built by an older analyzer version: rebuilding it from scratch.
+  simulated 256/2750
+  simulated 512/2750
+  simulated 768/2750
+  simulated 1024/2750
+  simulated 1280/2750
+  simulated 1536/2750
+  simulated 1792/2750
+  simulated 2048/2750
+  simulated 2304/2750
+  simulated 2560/2750
+  simulated 2750/2750
+
+=== M02 simulator report (analyzer_version 3) ===
+Units: offsets and times are real milliseconds (rate-adjusted); cursor in osu!px.
+Speed: 2750 replays in 8.0 s = 345.4 replays/s
+Kept replays:               2871
+  no beatmap file (skipped): 121
+  simulated ok:              2748
+  failed - variable rate mod: 2
+  hit rows stored:           2179542
+
+Count check vs replay header, by map type:
+  circles only: 2 replays; exact match 2 (100.0%)
+    exact match by window-edge rule: inclusive 1, inclusive-floor 1, exclusive-floor 2
+    TEST 1 (>=95% exact): PASS
+  circles+spinners: 3 replays; misses within +-2 of header: 3 (100.0%); sim misses >= header misses: 3
+  sliders: 2743 replays; misses within +-2 of header: 2607 (95.0%); sim misses >= header misses: 2606
+
+Mismatches by mods and map type (top 12):
+  sliders           NM         120 of 2279 mismatched
+  sliders           DT         8 of 256 mismatched
+  sliders           HD         3 of 96 mismatched
+  sliders           HT         2 of 56 mismatched
+  sliders           NF         2 of 12 mismatched
+  sliders           NF,HR      1 of 2 mismatched
+
+3 worst mismatches, hit by hit (non-300 rows only, max 40 each):
+- replay #2161 (d11279de) Henrique Camacho - Maharani Hi-Tech [Sacred Sanctum (Nerfed Jump)]
+  mods NM | sliders | header 300/100/50/miss = [428, 211, 3, 25] | sim = [425, 211, 3, 1918]
+    obj 1 at 85353 ms: offset +36.0 ms, key M1 -> 100
+    obj 2 at 85811 ms: offset +22.0 ms, key M2 -> 100
+    obj 3 at 86269 ms: offset +32.0 ms, key M1 -> 100
+    obj 6 at 87311 ms: offset +26.0 ms, key M2 -> 100
+    obj 15 at 89561 ms: offset +36.0 ms, key M2 -> 100
+    obj 21 at 91144 ms: offset +33.0 ms, key M2 -> 100
+    obj 22 at 91603 ms: offset -20.0 ms, key M1 -> 100
+    obj 24 at 92019 ms: offset +45.0 ms, key M1 -> 100
+    obj 25 at 92519 ms: offset -31.0 ms, key M2 -> 100
+    obj 28 at 96103 ms: offset -25.0 ms, key M2 -> 100
+    obj 33 at 96519 ms: offset +22.0 ms, key M1 -> 100
+    obj 34 at 96603 ms: offset +23.0 ms, key M2 -> 100
+    obj 42 at 97269 ms: offset +26.0 ms, key M2 -> 100
+    obj 46 at 97603 ms: no click -> MISS
+    obj 47 at 97686 ms: offset -68.0 ms, key M2 -> 50
+    obj 49 at 97853 ms: no click -> MISS
+    obj 50 at 97936 ms: offset -50.0 ms, key M1 -> 100
+    obj 51 at 98019 ms: offset -52.0 ms, key M2 -> 100
+    obj 52 at 98103 ms: offset -23.0 ms, key M1 -> 100
+    obj 53 at 98186 ms: offset -36.0 ms, key M2 -> 100
+    obj 54 at 98269 ms: offset -24.0 ms, key M1 -> 100
+    obj 55 at 98353 ms: offset -25.0 ms, key M2 -> 100
+    obj 62 at 98936 ms: offset +26.0 ms, key M1 -> 100
+    obj 63 at 99019 ms: offset +22.0 ms, key M2 -> 100
+    obj 64 at 99103 ms: offset +26.0 ms, key M1 -> 100
+    obj 65 at 99186 ms: offset +36.0 ms, key M2 -> 100
+    obj 66 at 99269 ms: offset +40.0 ms, key M1 -> 100
+    obj 67 at 99353 ms: no click -> MISS
+    obj 68 at 99436 ms: offset -33.0 ms, key M2 -> 100
+    obj 69 at 99519 ms: offset -38.0 ms, key M1 -> 100
+    obj 70 at 99603 ms: offset -44.0 ms, key M2 -> 100
+    obj 71 at 99686 ms: offset -38.0 ms, key M1 -> 100
+    obj 72 at 99769 ms: no click -> MISS
+    obj 73 at 99853 ms: offset -35.0 ms, key M1 -> 100
+    obj 74 at 99936 ms: offset -28.0 ms, key M2 -> 100
+    obj 75 at 100019 ms: offset -23.0 ms, key M1 -> 100
+    obj 76 at 100103 ms: offset -23.0 ms, key M2 -> 100
+    obj 84 at 100769 ms: offset +22.0 ms, key M2 -> 100
+    obj 85 at 100853 ms: offset +29.0 ms, key M1 -> 100
+    obj 86 at 100936 ms: offset +27.0 ms, key M2 -> 100
+- replay #135 (bffb9a3a) Pratanallis feat. KOKOMI - Black Berserker [The End of Love and Hate]
+  mods NM | sliders | header 300/100/50/miss = [72, 65, 10, 13] | sim = [71, 65, 10, 1796]
+    obj 1 at 1204 ms: offset +31.0 ms, key M1 -> 100
+    obj 2 at 1665 ms: offset +28.0 ms, key M1 -> 100
+    obj 3 at 1819 ms: offset +29.0 ms, key M2 -> 100
+    obj 28 at 7665 ms: offset +26.0 ms, key M2 -> 100
+    obj 35 at 9819 ms: offset +29.0 ms, key M2 -> 100
+    obj 38 at 10588 ms: offset -72.0 ms, key M1 -> 50
+    obj 39 at 10665 ms: offset -31.0 ms, key M1 -> 100
+    obj 40 at 10742 ms: offset -71.0 ms, key M2 -> 50
+    obj 41 at 10819 ms: offset -41.0 ms, key M1 -> 100
+    obj 42 at 10896 ms: offset -38.0 ms, key M2 -> 100
+    obj 43 at 10973 ms: offset -23.0 ms, key M1 -> 100
+    obj 44 at 11050 ms: offset -22.0 ms, key M2 -> 100
+    obj 50 at 12127 ms: offset +22.0 ms, key M1 -> 100
+    obj 54 at 12511 ms: offset +24.0 ms, key M2 -> 100
+    obj 55 at 12588 ms: offset +22.0 ms, key M1 -> 100
+    obj 57 at 12742 ms: offset +24.0 ms, key M1 -> 100
+    obj 58 at 12819 ms: offset +25.0 ms, key M2 -> 100
+    obj 59 at 12896 ms: offset +23.0 ms, key M1 -> 100
+    obj 60 at 13050 ms: offset +32.0 ms, key M1 -> 100
+    obj 63 at 13357 ms: no click -> MISS
+    obj 65 at 13588 ms: offset -29.0 ms, key M2 -> 100
+    obj 68 at 13819 ms: no click -> MISS
+    obj 69 at 13896 ms: offset -57.0 ms, key M1 -> 100
+    obj 70 at 13973 ms: offset -45.0 ms, key M2 -> 100
+    obj 71 at 14050 ms: offset -39.0 ms, key M1 -> 100
+    obj 72 at 14127 ms: offset -41.0 ms, key M2 -> 100
+    obj 73 at 14204 ms: offset -28.0 ms, key M1 -> 100
+    obj 74 at 14280 ms: offset -43.0 ms, key M2 -> 100
+    obj 77 at 14819 ms: offset -36.0 ms, key M2 -> 100
+    obj 78 at 14896 ms: offset -24.0 ms, key M1 -> 100
+    obj 82 at 15204 ms: offset -21.0 ms, key M1 -> 100
+    obj 84 at 15357 ms: offset +29.0 ms, key M1 -> 100
+    obj 85 at 15434 ms: offset +36.0 ms, key M2 -> 100
+    obj 86 at 15511 ms: offset +37.0 ms, key M1 -> 100
+    obj 87 at 15588 ms: offset +46.0 ms, key M2 -> 100
+    obj 88 at 15665 ms: offset +47.0 ms, key M1 -> 100
+    obj 89 at 15742 ms: offset +21.0 ms, key M2 -> 100
+    obj 90 at 15819 ms: no click -> MISS
+    obj 91 at 15896 ms: offset -24.0 ms, key M1 -> 100
+    obj 92 at 15973 ms: offset -70.0 ms, key M2 -> 50
+- replay #1516 (333a31be) Unlucky Morpheus - Black Pentagram [Ritual]
+  mods NM | sliders | header 300/100/50/miss = [402, 118, 8, 20] | sim = [402, 118, 8, 1436]
+    obj 1 at 430 ms: offset +32.0 ms, key M1 -> 100
+    obj 4 at 752 ms: offset +27.0 ms, key M1 -> 100
+    obj 5 at 914 ms: offset +39.0 ms, key M1 -> 100
+    obj 7 at 1075 ms: offset +27.0 ms, key M1 -> 100
+    obj 15 at 2043 ms: offset +34.0 ms, key M2 -> 100
+    obj 17 at 2366 ms: offset +32.0 ms, key M2 -> 100
+    obj 21 at 2849 ms: offset +29.0 ms, key M1 -> 100
+    obj 22 at 2929 ms: offset +42.0 ms, key M2 -> 100
+    obj 24 at 3090 ms: offset +46.0 ms, key M2 -> 100
+    obj 25 at 3172 ms: offset +51.0 ms, key M1 -> 100
+    obj 26 at 3333 ms: no click -> MISS
+    obj 28 at 3494 ms: offset -32.0 ms, key M2 -> 100
+    obj 30 at 3655 ms: offset -30.0 ms, key M2 -> 100
+    obj 31 at 3737 ms: no click -> MISS
+    obj 35 at 4058 ms: offset +41.0 ms, key M1 -> 100
+    obj 36 at 4139 ms: no click -> MISS
+    obj 50 at 5914 ms: no click -> MISS
+    obj 51 at 5994 ms: offset -72.0 ms, key M1 -> 50
+    obj 52 at 6075 ms: offset -76.0 ms, key M2 -> 50
+    obj 53 at 6155 ms: offset -58.0 ms, key M1 -> 100
+    obj 54 at 6236 ms: offset -59.0 ms, key M2 -> 100
+    obj 55 at 6317 ms: offset -48.0 ms, key M1 -> 100
+    obj 56 at 6398 ms: offset -55.0 ms, key M2 -> 100
+    obj 57 at 6559 ms: offset -67.0 ms, key M1 -> 100
+    obj 58 at 6639 ms: offset -55.0 ms, key M2 -> 100
+    obj 59 at 6720 ms: offset -55.0 ms, key M1 -> 100
+    obj 60 at 6881 ms: offset -34.0 ms, key M1 -> 100
+    obj 61 at 6961 ms: offset -28.0 ms, key M2 -> 100
+    obj 62 at 7042 ms: offset -35.0 ms, key M1 -> 100
+    obj 64 at 7284 ms: offset -26.0 ms, key M2 -> 100
+    obj 70 at 8090 ms: offset -30.0 ms, key M2 -> 100
+    obj 72 at 8251 ms: offset -32.0 ms, key M2 -> 100
+    obj 79 at 8897 ms: no click -> MISS
+    obj 80 at 8978 ms: offset -37.0 ms, key M2 -> 100
+    obj 81 at 9058 ms: offset -41.0 ms, key M1 -> 100
+    obj 82 at 9139 ms: offset -30.0 ms, key M2 -> 100
+    obj 84 at 9301 ms: offset -67.0 ms, key M1 -> 100
+    obj 95 at 10752 ms: offset -35.0 ms, key M1 -> 100
+    obj 96 at 10832 ms: offset -34.0 ms, key M2 -> 100
+    obj 97 at 10914 ms: offset -45.0 ms, key M1 -> 100
