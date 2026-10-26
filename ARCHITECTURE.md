@@ -138,4 +138,4 @@ Frames text "delta|x|y|keys," with a final -12345 seed frame: verified on 2 real
 ## Verified vs not
 - M02 (user run, 2750 replays, 372 replays/s): circle-only 2/2 exact; circles+spinners 3/3 within +-2 misses; slider maps 2609/2743 (95.1%) within +-2 misses; 2721 complete plays, 27 incomplete. 121 replays skipped (no beatmap file), 2 failed (variable-rate mod).
 - M03 (user run 2026-10-26): build OK, 46 tests pass, `load`: 2871 plays (2844 pass / 27 fail), 2723 with PP, ~129.5 h, 2160680 hits in RAM, PP for 2750 plays in 1.5 s, load 1.11 s, startup 2.68 s. Window opens.
-- M03 not verified: PP values vs in-game, totals and hours vs the user's knowledge, filter and click-through behaviour in the window.
+- M03 verified: PP values vs in-game, totals and hours vs the user's knowledge, filter and click-through behaviour in the window.

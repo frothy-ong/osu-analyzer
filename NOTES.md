@@ -1,8 +1,8 @@
 # NOTES
 Claude reads this first. The user updates it when stopping.
 
-Current milestone: M03
+Current milestone: M04
 Status: not started
-Last command: cargo run --release -- sim
+Last command: cargo run --release
 Last error: (none)
-Next step: start milestones/M03-overview.md
+Next step: start milestones/M04-heatmaps.md
