@@ -1,5 +1,5 @@
 # M03: Overview page and filter bar
-Status: not started
+Status: built; tests and `load` verified by user run (46 tests pass, 2871 plays, startup 2.68 s); awaiting window click-through (acceptance 1, 2, 4)
 Depends on: M02
 Goal: First useful page, plus the global filter bar every page will share.
 

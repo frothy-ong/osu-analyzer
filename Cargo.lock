@@ -1006,6 +1006,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "egui_plot"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8dca4871c15d51aadb79534dcf51a8189e5de3426ee7b465eb7db9a0a81ea67"
+dependencies = [
+ "ahash",
+ "egui",
+ "emath",
+]
+
+[[package]]
 name = "either"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2388,11 +2399,13 @@ name = "osu-analyzer"
 version = "0.1.0"
 dependencies = [
  "eframe",
+ "egui_plot",
  "flate2",
  "lzma-rs",
  "md-5",
  "rayon",
  "rosu-map",
+ "rosu-pp",
  "rusqlite",
  "serde",
  "serde_json",
@@ -2713,6 +2726,22 @@ name = "rosu-map"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b92ea634d8b3eaa4d7fba7bd12045dda1a50ce81401c96af0d9c851b0737544"
+
+[[package]]
+name = "rosu-mods"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdc002dd5c7baef181e98980615ef27df55f35ff291c088cb37e6a339f2777e1"
+
+[[package]]
+name = "rosu-pp"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66725aa2b679d3bd206ca70d88d4f9b42127493208a9335d9cc6abe861b619cf"
+dependencies = [
+ "rosu-map",
+ "rosu-mods",
+]
 
 [[package]]
 name = "rsqlite-vfs"

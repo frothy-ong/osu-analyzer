@@ -6,7 +6,7 @@ Mark each item PLANNED until it exists in the code, then change to DONE.
 ## Modules
 | Module | Purpose | Status |
 |---|---|---|
-| src/main.rs | app entry, egui window, tab shell (7 empty tabs), `scan` and `sim` commands | DONE (M00 user-checked? no; M01/M02 commands not yet user-checked) |
+| src/main.rs | app entry, egui window, tab shell, filter bar panel, `scan` / `sim` / `load` commands | DONE (M03 built, not user-checked; M00/M01 not user-checked) |
 | src/config.rs | config file (~/.config/osu-analyzer/config.toml), lazer path detection | DONE (M01, not yet user-checked) |
 | src/scan.rs | walk files/, identify by content, incremental index, summary print | DONE (M01, not yet user-checked) |
 | src/replay.rs | replay header, LZMA frames, lazer mod blob | DONE (M02, user-checked) |
@@ -14,14 +14,16 @@ Mark each item PLANNED until it exists in the code, then change to DONE.
 | src/sim/engine.rs | hit detection: presses, hover, note lock, early miss, auto-miss | DONE (M02) |
 | src/sim/mod.rs | `simulate_replay` (pure), header comparison, mod names | DONE (M02) |
 | src/sim/run.rs | run over all kept replays, store rows, print report | DONE (M02) |
-| src/db.rs | SQLite schema, analyzer_version, wipe, known-file lookup | DONE (M01/M02); load hits into RAM PLANNED (M03) |
-| src/stats | aggregations: bins, UR, keys, radar | PLANNED |
-| src/ui | one file per page | PLANNED |
+| src/db.rs | SQLite schema, analyzer_version, wipe, known-file lookup | DONE (M01/M02) |
+| src/data.rs | PP recompute (rosu-pp), load plays+hits into RAM, global Filter, date/month helpers, mod usage | DONE (M03, not user-checked) |
+| src/ui.rs | filter bar, Overview page, "plays behind this number" window | DONE (M03, not user-checked) |
+| src/stats | aggregations: bins, UR, keys, radar | PLANNED (M04+) |
 
 ## Commands
 - `cargo run --release -- scan`: index the lazer folder into ~/.local/share/osu-analyzer/cache.db and print a summary.
 - `cargo run --release -- sim`: run scan (incremental), simulate every kept replay not yet done at this analyzer_version, print the M02 report.
-- `cargo run`: open the window.
+- `cargo run --release -- load`: M03 startup path without a window: compute missing PP, load plays and hits into RAM, print totals and timings.
+- `cargo run --release`: open the window (loads in a background thread; Overview shows when ready).
 
 ## Database (SQLite cache; every table rebuildable from lazer files)
 Cache file: ~/.local/share/osu-analyzer/cache.db (our own file, never inside the lazer folder).
@@ -40,7 +42,7 @@ A stored analyzer_version different from the build's wipes all tables on the nex
   with the exact rate (lazer blob) once simulated.
 - hits(score_id, object_index, time_ms, offset_ms, cursor_dx, cursor_dy,
   key, judgement, local_density, spacing, obj_x, obj_y). DONE (M02). One flat
-  table, PK (score_id, object_index). Loaded into RAM at startup (M03).
+  table, PK (score_id, object_index). Loaded into RAM at startup (M03, `data::Hit`, ~44 bytes each).
   - object_index = index in the .osu file's hit object list (spinners count).
   - time_ms = object time in REAL ms (map time / rate). offset_ms = click minus
     object time in real ms, NULL if the object was never clicked (miss).
@@ -57,6 +59,23 @@ A stored analyzer_version different from the build's wipes all tables on the nex
   status = 'ok' or the failure reason. match_* = exact header match under each
   window-edge rule (diagnostic). miss_diff = sim misses - header misses.
   Replays with no beatmap file get no row and are retried on the next run.
+- play_pp(file_hash TEXT PK, pp REAL, stars REAL, pp_lib TEXT, analyzer_version TEXT). DONE (M03).
+  Created by data.rs (not db.rs). Keyed by replay file hash (stable across wipes). A row only
+  counts if pp_lib = data::PP_LIB and analyzer_version match; otherwise PP is recomputed.
+  pp NULL = rosu-pp could not parse the map.
+
+## Overview rules (M03)
+- A "play" = every kept replay (not excluded). Replays with no beatmap file still count as plays but have no PP/stars/title.
+- passed = simulated judged objects >= expected objects; no sim row => treated as passed. Fails/quits get no PP.
+- PP = rosu-pp 3.0.0 (pinned, `Performance` with legacy mod bits, header n300/n100/n50/miss, header max combo,
+  clock_rate = replay rate, `lazer(false)` because header counts are stable-style). Stored PP is never used.
+  Lazer-only settings (Difficulty Adjust) are not applied to PP.
+- Hours = sum over plays of the last judged hit's time (real ms) / 3.6e6. An estimate (ignores the tail after the last object).
+- Accuracy = 100*(300a+100b+50c)/(300*(a+b+c+miss)) from header counts.
+- Filter (data::Filter): mod groups NF/EZ/HD/HR/DT-NC/HT/FL (all ticked must be present; "exact" = no other listed mod),
+  date range presets (all, 7/30/90/365 days back from now), star range (plays without stars drop out once the range is narrowed),
+  best-only (highest PP per beatmap md5 after the other filters), include fails.
+- Clickable numbers: plays, hours, passes, fails, each mod-usage count. Charts themselves are not clickable yet.
 
 ## Verified replay layout (from real lazer files, 2026-10-25)
 Stored in files/<2 hex>/<4 hex>/<sha256>. Standard .osr layout: mode u8,
@@ -103,19 +122,20 @@ Frames text "delta|x|y|keys," with a final -12345 seed frame: verified on 2 real
 - 2026-10-26 | Slider-map header counts cannot match exactly (header judges whole sliders; we judge heads only) | Only misses are compared, with tolerance.
 - 2026-10-26 | Objects after the last replay frame are left unjudged (no hit row) | First real run: failed/quit replays showed ~1900 fake misses because unplayed objects were counted. ANALYZER_VERSION 4.
 - 2026-10-26 | Rate: lazer blob DT/NC/HT/DC speed_change if readable, else legacy bits. Variable-rate mods (WU/WD/AS) fail with status "variable rate mod" | Cannot simulate a changing rate.
+- 2026-10-26 | M03: pinned rosu-pp 3.0.0 and egui_plot 0.29.0 (matches egui 0.29) | One PP library, exact pins per SPEC. Not yet compiled: if the build fails, the error will point at these two.
+- 2026-10-26 | M03: no schema change, ANALYZER_VERSION stays "4"; max combo is read from the replay header at PP time; hours come from the last hit time | Avoids forcing a full re-simulation.
+- 2026-10-26 | M03: date range = presets (all/7/30/90/365 days), not a free calendar picker | Smallest thing meeting "date range"; can be extended.
+- 2026-10-26 | M03: fails get no PP; plays with no beatmap file count as plays but have no PP | Matches in-game rules; keeps totals equal to kept replays.
 
 ## Gotchas
 - Edition 2024 needs Rust 1.85 or newer. Check with `rustc --version`.
 - Arch: if the build fails on missing windowing libraries, run `sudo pacman -S --needed libxkbcommon wayland libx11`.
 - Stray empty-purpose file `milestones/M00-` is a duplicate of M00-window.md; delete it.
-- Adding M02 dependencies changes Cargo.lock; commit it.
+- Adding dependencies changes Cargo.lock; commit it (ship.sh does).
 - A cache from before M02 may hold an old `hits` table; `db::wipe` drops and recreates all tables.
+- `cargo run --release` (window) refuses to load if the cache is from an older analyzer version: run `-- sim` first.
 
-## Verified vs not (M02, final)
-- User run on the real folder (2750 replays, 372 replays/s): circle-only 2/2 exact; circles+spinners 3/3 within +-2 misses; slider maps 2609/2743 (95.1%) within +-2 misses; 2721 complete plays, 27 incomplete (failed/quit). Remaining slider mismatches come from slider ticks/ends (out of scope for v1), not head hits.
-- 121 replays skipped (beatmap file not in folder), 2 failed (variable-rate mod).
-
-### Earlier notes
-- Verified (non-GUI crate, Rust 1.91, 36 unit tests; plus 2 real replays: counts match header exactly, blob and DT 1.1x read): frame parsing, LZMA with unknown and known size, gzip/plain lazer blob, stacking, slider end/duration, HR/EZ/DT handling, judgement by offset, early miss, note lock, K1/K2 labels, DB store, re-run skip, report printing.
-- First full run (2750 replays, 8 s, 345 replays/s): circle-only 2/2 exact; slider maps 95.0% within +-2 misses before the fail fix; 121 replays have no beatmap file; 2 skipped (variable-rate mod).
-- Not verified: `cargo build`/`cargo test` of the full GUI crate, `cargo run --release -- sim` on the real folder, any match against real header counts, the lazer blob format, window-edge rule.
+## Verified vs not
+- M02 (user run, 2750 replays, 372 replays/s): circle-only 2/2 exact; circles+spinners 3/3 within +-2 misses; slider maps 2609/2743 (95.1%) within +-2 misses; 2721 complete plays, 27 incomplete. 121 replays skipped (no beatmap file), 2 failed (variable-rate mod).
+- M03 (user run 2026-10-26): build OK, 46 tests pass, `load`: 2871 plays (2844 pass / 27 fail), 2723 with PP, ~129.5 h, 2160680 hits in RAM, PP for 2750 plays in 1.5 s, load 1.11 s, startup 2.68 s. Window opens.
+- M03 not verified: PP values vs in-game, totals and hours vs the user's knowledge, filter and click-through behaviour in the window.
