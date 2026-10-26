@@ -1,9 +1,11 @@
 mod config;
 mod data;
 mod db;
+mod heatmap_ui;
 mod replay;
 mod scan;
 mod sim;
+mod stats;
 mod ui;
 
 use eframe::egui;
@@ -55,6 +57,7 @@ struct App {
     state: State,
     filter: data::Filter,
     detail: Option<ui::Detail>,
+    heat: heatmap_ui::HeatState,
 }
 
 impl App {
@@ -63,7 +66,13 @@ impl App {
         std::thread::spawn(move || {
             let _ = tx.send(data::load_all());
         });
-        Self { current: Tab::Overview, state: State::Loading(rx), filter: data::Filter::default(), detail: None }
+        Self {
+            current: Tab::Overview,
+            state: State::Loading(rx),
+            filter: data::Filter::default(),
+            detail: None,
+            heat: heatmap_ui::HeatState::default(),
+        }
     }
 }
 
@@ -106,7 +115,7 @@ impl eframe::App for App {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading(self.current.name());
-            if self.current != Tab::Overview {
+            if self.current != Tab::Overview && self.current != Tab::Analysis {
                 return;
             }
             match &self.state {
@@ -118,7 +127,11 @@ impl eframe::App for App {
                 }
                 State::Ready(d) => {
                     let idx = self.filter.apply(&d.plays, now_unix());
-                    ui::overview(ui, d, &idx, &mut self.detail);
+                    if self.current == Tab::Overview {
+                        ui::overview(ui, d, &idx, &mut self.detail);
+                    } else {
+                        heatmap_ui::show(ui, d, &idx, &self.filter, &mut self.heat);
+                    }
                 }
             }
         });

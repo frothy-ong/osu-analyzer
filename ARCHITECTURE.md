@@ -6,7 +6,7 @@ Mark each item PLANNED until it exists in the code, then change to DONE.
 ## Modules
 | Module | Purpose | Status |
 |---|---|---|
-| src/main.rs | app entry, egui window, tab shell, filter bar panel, `scan` / `sim` / `load` commands | DONE (M03 built, not user-checked; M00/M01 not user-checked) |
+| src/main.rs | app entry, egui window, tab shell, filter bar panel, `scan` / `sim` / `load` commands; Analysis tab shows heatmaps | DONE (M04 built, not user-checked; M00/M01/M03 not window-checked) |
 | src/config.rs | config file (~/.config/osu-analyzer/config.toml), lazer path detection | DONE (M01, not yet user-checked) |
 | src/scan.rs | walk files/, identify by content, incremental index, summary print | DONE (M01, not yet user-checked) |
 | src/replay.rs | replay header, LZMA frames, lazer mod blob | DONE (M02, user-checked) |
@@ -17,17 +17,20 @@ Mark each item PLANNED until it exists in the code, then change to DONE.
 | src/db.rs | SQLite schema, analyzer_version, wipe, known-file lookup | DONE (M01/M02) |
 | src/data.rs | PP recompute (rosu-pp), load plays+hits into RAM, global Filter, date/month helpers, mod usage | DONE (M03, not user-checked) |
 | src/ui.rs | filter bar, Overview page, "plays behind this number" window | DONE (M03, not user-checked) |
-| src/stats | aggregations: bins, UR, keys, radar | PLANNED (M04+) |
+| src/stats/heatmap.rs | 128x96 binning, summed-area box smoothing, five heatmap modes, colour scales, hover text | DONE (M04, not user-checked) |
+| src/heatmap_ui.rs | Analysis > Heatmaps page: mode buttons, 300/100/50/miss toggles, sliders, texture, hover | DONE (M04, not user-checked) |
+| src/stats (keys, radar) | key stats, stamina, radar | PLANNED (M05+) |
 
 ## Commands
 - `cargo run --release -- scan`: index the lazer folder into ~/.local/share/osu-analyzer/cache.db and print a summary.
 - `cargo run --release -- sim`: run scan (incremental), simulate every kept replay not yet done at this analyzer_version, print the M02 report.
 - `cargo run --release -- load`: M03 startup path without a window: compute missing PP, load plays and hits into RAM, print totals and timings.
-- `cargo run --release`: open the window (loads in a background thread; Overview shows when ready).
+- `cargo run --release`: open the window (loads in a background thread; Overview and Analysis show when ready).
 
 ## Database (SQLite cache; every table rebuildable from lazer files)
 Cache file: ~/.local/share/osu-analyzer/cache.db (our own file, never inside the lazer folder).
 A stored analyzer_version different from the build's wipes all tables on the next scan.
+M04 adds no tables and no schema change; ANALYZER_VERSION stays "4".
 
 - meta(key TEXT PK, value TEXT): includes analyzer_version ("4"). DONE.
 - files(hash TEXT PK, kind TEXT, size INTEGER, seen_at INTEGER): scan state. DONE.
@@ -77,6 +80,21 @@ A stored analyzer_version different from the build's wipes all tables on the nex
   best-only (highest PP per beatmap md5 after the other filters), include fails.
 - Clickable numbers: plays, hours, passes, fails, each mod-usage count. Charts themselves are not clickable yet.
 
+## Heatmap rules (M04)
+- Hits come from the RAM dataset, restricted to plays passing the global filter. Re-binned only when the filter changes.
+- Grid 128x96, 4 osu!px per bin. Per judgement (300/100/50/miss) and per bin: object count, offset count, sum and
+  sum-of-squares of offset_ms, sum of cursor dx and dy, click count. Hits are placed by OBJECT position (true map
+  orientation, Hard Rock already un-flipped); clicks for click density are placed by cursor position (object + dx, dy).
+- Smoothing = box window of (2r+1)^2 bins, r = 0..10, via a summed-area table: instant, and the window sum is the true
+  sample count. All ratios are exact means over the window. The toggles just choose which judgement layers are summed.
+- Accuracy = MEAN of per-hit accuracy (300=100%, 100=33.3%, 50=16.7%, miss=0%), not the median (see Decisions).
+- Click density = clicks / objects in the window (clicks per object). Mean offset = mean offset_ms (negative = early).
+  UR = 10 x std of offset_ms (needs >= 2 clicked objects). Bias = mean cursor dx, dy at the object time (offset 0 ms
+  by definition); red = right of centre, blue = above centre, grey = centred, full colour at 10 osu!px.
+- Accuracy, click density and bias count every object (misses included). Offset and UR count only objects with an offset.
+- Bins with fewer window samples than the minimum-sample slider are drawn faded; hover shows bin range, value, samples.
+- Colour scale for accuracy/click density/UR = 2nd to 98th percentile of bins with enough samples (printed on the page).
+
 ## Verified replay layout (from real lazer files, 2026-10-25)
 Stored in files/<2 hex>/<4 hex>/<sha256>. Standard .osr layout: mode u8,
 version i32 (seen 30000018), beatmap md5, player, replay md5, n300 n100 n50
@@ -122,10 +140,13 @@ Frames text "delta|x|y|keys," with a final -12345 seed frame: verified on 2 real
 - 2026-10-26 | Slider-map header counts cannot match exactly (header judges whole sliders; we judge heads only) | Only misses are compared, with tolerance.
 - 2026-10-26 | Objects after the last replay frame are left unjudged (no hit row) | First real run: failed/quit replays showed ~1900 fake misses because unplayed objects were counted. ANALYZER_VERSION 4.
 - 2026-10-26 | Rate: lazer blob DT/NC/HT/DC speed_change if readable, else legacy bits. Variable-rate mods (WU/WD/AS) fail with status "variable rate mod" | Cannot simulate a changing rate.
-- 2026-10-26 | M03: pinned rosu-pp 3.0.0 and egui_plot 0.29.0 (matches egui 0.29) | One PP library, exact pins per SPEC. Not yet compiled: if the build fails, the error will point at these two.
+- 2026-10-26 | M03: pinned rosu-pp 3.0.0 and egui_plot 0.29.0 (matches egui 0.29) | One PP library, exact pins per SPEC.
 - 2026-10-26 | M03: no schema change, ANALYZER_VERSION stays "4"; max combo is read from the replay header at PP time; hours come from the last hit time | Avoids forcing a full re-simulation.
 - 2026-10-26 | M03: date range = presets (all/7/30/90/365 days), not a free calendar picker | Smallest thing meeting "date range"; can be extended.
 - 2026-10-26 | M03: fails get no PP; plays with no beatmap file count as plays but have no PP | Matches in-game rules; keeps totals equal to kept replays.
+- 2026-10-26 | M04: accuracy heatmap shows the MEAN per-hit accuracy, not the median SPEC lists | Instant smoothing needs sum/count per bin; a median cannot be blurred from sums. Tell Claude if the median matters.
+- 2026-10-26 | M04: smoothing is a box window (not Gaussian) | Window sums are true sample counts, so the min-sample fade and hover counts are honest.
+- 2026-10-26 | M04: no new crates, no schema change, ANALYZER_VERSION stays "4" | Everything reads the in-RAM hits.
 
 ## Gotchas
 - Edition 2024 needs Rust 1.85 or newer. Check with `rustc --version`.
@@ -134,8 +155,11 @@ Frames text "delta|x|y|keys," with a final -12345 seed frame: verified on 2 real
 - Adding dependencies changes Cargo.lock; commit it (ship.sh does).
 - A cache from before M02 may hold an old `hits` table; `db::wipe` drops and recreates all tables.
 - `cargo run --release` (window) refuses to load if the cache is from an older analyzer version: run `-- sim` first.
+- M04 was written without a compiler available: if `cargo build` fails, paste the error.
 
 ## Verified vs not
 - M02 (user run, 2750 replays, 372 replays/s): circle-only 2/2 exact; circles+spinners 3/3 within +-2 misses; slider maps 2609/2743 (95.1%) within +-2 misses; 2721 complete plays, 27 incomplete. 121 replays skipped (no beatmap file), 2 failed (variable-rate mod).
 - M03 (user run 2026-10-26): build OK, 46 tests pass, `load`: 2871 plays (2844 pass / 27 fail), 2723 with PP, ~129.5 h, 2160680 hits in RAM, PP for 2750 plays in 1.5 s, load 1.11 s, startup 2.68 s. Window opens.
 - M03 verified: PP values vs in-game, totals and hours vs the user's knowledge, filter and click-through behaviour in the window.
+- M04 NOT verified (not compiled, not run): build, the 8 new unit tests in stats/heatmap.rs, and all five acceptance tests in the window.
+- M04 approximation: click density places clicks by the cursor at the object time, not at the exact click frame.

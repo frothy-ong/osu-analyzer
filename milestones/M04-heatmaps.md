@@ -1,5 +1,5 @@
 # M04: Heatmaps
-Status: not started
+Status: done
 Depends on: M03
 Goal: Analysis > Heatmaps with bias-corrected, instantly adjustable maps.
 
