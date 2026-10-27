@@ -2,6 +2,7 @@ mod config;
 mod data;
 mod db;
 mod heatmap_ui;
+mod keys_ui;
 mod replay;
 mod scan;
 mod sim;
@@ -46,6 +47,12 @@ impl Tab {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum AnalysisPage {
+    Heatmaps,
+    Keys,
+}
+
 enum State {
     Loading(mpsc::Receiver<Result<data::Dataset, String>>),
     Ready(Box<data::Dataset>),
@@ -54,10 +61,12 @@ enum State {
 
 struct App {
     current: Tab,
+    analysis: AnalysisPage,
     state: State,
     filter: data::Filter,
     detail: Option<ui::Detail>,
     heat: heatmap_ui::HeatState,
+    keys: keys_ui::KeysState,
 }
 
 impl App {
@@ -68,10 +77,12 @@ impl App {
         });
         Self {
             current: Tab::Overview,
+            analysis: AnalysisPage::Heatmaps,
             state: State::Loading(rx),
             filter: data::Filter::default(),
             detail: None,
             heat: heatmap_ui::HeatState::default(),
+            keys: keys_ui::KeysState::default(),
         }
     }
 }
@@ -130,7 +141,14 @@ impl eframe::App for App {
                     if self.current == Tab::Overview {
                         ui::overview(ui, d, &idx, &mut self.detail);
                     } else {
-                        heatmap_ui::show(ui, d, &idx, &self.filter, &mut self.heat);
+                        ui.horizontal(|ui| {
+                            ui.selectable_value(&mut self.analysis, AnalysisPage::Heatmaps, "Heatmaps");
+                            ui.selectable_value(&mut self.analysis, AnalysisPage::Keys, "Keys");
+                        });
+                        match self.analysis {
+                            AnalysisPage::Heatmaps => heatmap_ui::show(ui, d, &idx, &self.filter, &mut self.heat),
+                            AnalysisPage::Keys => keys_ui::show(ui, d, &idx, &self.filter, &mut self.keys),
+                        }
                     }
                 }
             }

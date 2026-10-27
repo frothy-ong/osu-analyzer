@@ -1,5 +1,5 @@
 # M05: Key graphs
-Status: not started
+Status: built; build and 4 unit tests verified by user run; awaiting window check of acceptance 1-3
 Depends on: M03
 Goal: Analysis > Keys with per-key timing and a fair stamina curve.
 

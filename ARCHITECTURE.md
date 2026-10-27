@@ -6,7 +6,7 @@ Mark each item PLANNED until it exists in the code, then change to DONE.
 ## Modules
 | Module | Purpose | Status |
 |---|---|---|
-| src/main.rs | app entry, egui window, tab shell, filter bar panel, `scan` / `sim` / `load` commands; Analysis tab shows heatmaps | DONE (M04 built, not user-checked; M00/M01/M03 not window-checked) |
+| src/main.rs | app entry, egui window, tab shell, filter bar panel, `scan` / `sim` / `load` commands; Analysis tab has Heatmaps and Keys sub-pages | DONE (M05 built, not user-checked; M00/M01/M03/M04 not window-checked) |
 | src/config.rs | config file (~/.config/osu-analyzer/config.toml), lazer path detection | DONE (M01, not yet user-checked) |
 | src/scan.rs | walk files/, identify by content, incremental index, summary print | DONE (M01, not yet user-checked) |
 | src/replay.rs | replay header, LZMA frames, lazer mod blob | DONE (M02, user-checked) |
@@ -19,7 +19,9 @@ Mark each item PLANNED until it exists in the code, then change to DONE.
 | src/ui.rs | filter bar, Overview page, "plays behind this number" window | DONE (M03, not user-checked) |
 | src/stats/heatmap.rs | 128x96 binning, summed-area box smoothing, five heatmap modes, colour scales, hover text | DONE (M04, not user-checked) |
 | src/heatmap_ui.rs | Analysis > Heatmaps page: mode buttons, 300/100/50/miss toggles, sliders, texture, hover | DONE (M04, not user-checked) |
-| src/stats (keys, radar) | key stats, stamina, radar | PLANNED (M05+) |
+| src/stats/keys.rs | per-key stats, 4 ms offset histograms, density-normalized stamina curve (pure, unit-tested) | DONE (M05, not compiled/user-checked) |
+| src/keys_ui.rs | Analysis > Keys page: histogram lines, key table, stamina plot + normalization toggle, sample tables | DONE (M05, not user-checked) |
+| src/stats (radar) | radar | PLANNED (M06) |
 
 ## Commands
 - `cargo run --release -- scan`: index the lazer folder into ~/.local/share/osu-analyzer/cache.db and print a summary.
@@ -30,7 +32,7 @@ Mark each item PLANNED until it exists in the code, then change to DONE.
 ## Database (SQLite cache; every table rebuildable from lazer files)
 Cache file: ~/.local/share/osu-analyzer/cache.db (our own file, never inside the lazer folder).
 A stored analyzer_version different from the build's wipes all tables on the next scan.
-M04 adds no tables and no schema change; ANALYZER_VERSION stays "4".
+M04 and M05 add no tables and no schema change; ANALYZER_VERSION stays "4".
 
 - meta(key TEXT PK, value TEXT): includes analyzer_version ("4"). DONE.
 - files(hash TEXT PK, kind TEXT, size INTEGER, seen_at INTEGER): scan state. DONE.
@@ -85,7 +87,7 @@ M04 adds no tables and no schema change; ANALYZER_VERSION stays "4".
 - Grid 128x96, 4 osu!px per bin. Per judgement (300/100/50/miss) and per bin: object count, offset count, sum and
   sum-of-squares of offset_ms, sum of cursor dx and dy, click count. Hits are placed by OBJECT position (true map
   orientation, Hard Rock already un-flipped); clicks for click density are placed by cursor position (object + dx, dy).
-- Smoothing = box window of (2r+1)^2 bins, r = 0..10, via a summed-area table: instant, and the window sum is the true
+- Smoothing = box window of (2r+1)^2 bins, r = 0..25, via a summed-area table: instant, and the window sum is the true
   sample count. All ratios are exact means over the window. The toggles just choose which judgement layers are summed.
 - Accuracy = MEAN of per-hit accuracy (300=100%, 100=33.3%, 50=16.7%, miss=0%), not the median (see Decisions).
 - Click density = clicks / objects in the window (clicks per object). Mean offset = mean offset_ms (negative = early).
@@ -94,6 +96,18 @@ M04 adds no tables and no schema change; ANALYZER_VERSION stays "4".
 - Accuracy, click density and bias count every object (misses included). Offset and UR count only objects with an offset.
 - Bins with fewer window samples than the minimum-sample slider are drawn faded; hover shows bin range, value, samples.
 - Colour scale for accuracy/click density/UR = 2nd to 98th percentile of bins with enough samples (printed on the page).
+
+## Key graph rules (M05)
+- Hits come from the RAM dataset, restricted to plays passing the global filter. Recomputed only when the filter changes.
+- "Hit" = judged object (300/100/50) with a key and an offset. Early-click misses (judgement 0 with a key) and never-clicked
+  objects are excluded from every key number; the early-click count is printed on the page.
+- Per key (K1/K2/M1/M2): hits, mean offset, std (population), UR = 10 x std, all in real ms. Histogram = 4 ms bins over
+  -200..+200 ms, drawn as lines in % of that key's hits so keys with different counts are comparable.
+- Total hits = sum of the per-key hits (test 1 is true by construction and printed on the page as a check).
+- Stamina curve: x = elapsed time into the map (hit time, real ms) in 30 s bins. Raw y = mean |offset| per bin.
+  Normalized y = mean over the bin's hits of |offset| / (mean |offset| of all filtered hits in the same density band).
+  Density bands (objects per real second, +-1 s): <2, 2-4, 4-6, 6-8, 8-10, >=10. 1.0 = typical for that density.
+  Bins with fewer than 30 hits are hidden. A table lists samples per bin and per density band.
 
 ## Verified replay layout (from real lazer files, 2026-10-25)
 Stored in files/<2 hex>/<4 hex>/<sha256>. Standard .osr layout: mode u8,
@@ -147,6 +161,9 @@ Frames text "delta|x|y|keys," with a final -12345 seed frame: verified on 2 real
 - 2026-10-26 | M04: accuracy heatmap shows the MEAN per-hit accuracy, not the median SPEC lists | Instant smoothing needs sum/count per bin; a median cannot be blurred from sums. Tell Claude if the median matters.
 - 2026-10-26 | M04: smoothing is a box window (not Gaussian) | Window sums are true sample counts, so the min-sample fade and hover counts are honest.
 - 2026-10-26 | M04: no new crates, no schema change, ANALYZER_VERSION stays "4" | Everything reads the in-RAM hits.
+- 2026-10-27 | M05: key stats exclude early-click misses (judgement 0 with a key) | Their offsets (up to -400 ms) would distort UR/std; the count is shown on the page.
+- 2026-10-27 | M05: density normalization = divide |offset| by the mean |offset| of the hit's density band (6 fixed bands), 30 s time bins, min 30 hits per bin | Simple, explainable; "compare only similar density" is done by band. Bands/bin size are constants in stats/keys.rs.
+- 2026-10-27 | M05: no new crates, no schema change, ANALYZER_VERSION stays "4"; Analysis tab gets a Heatmaps/Keys selector | Reads the in-RAM hits.
 
 ## Gotchas
 - Edition 2024 needs Rust 1.85 or newer. Check with `rustc --version`.
@@ -155,11 +172,13 @@ Frames text "delta|x|y|keys," with a final -12345 seed frame: verified on 2 real
 - Adding dependencies changes Cargo.lock; commit it (ship.sh does).
 - A cache from before M02 may hold an old `hits` table; `db::wipe` drops and recreates all tables.
 - `cargo run --release` (window) refuses to load if the cache is from an older analyzer version: run `-- sim` first.
-- M04 was written without a compiler available: if `cargo build` fails, paste the error.
+- M05 was written without a compiler available: if `cargo build` fails, paste the error.
+- stats/heatmap.rs compute_field has a duplicated `let objs = b(C_OBJ);` line (harmless, wastes one blur); not touched in M05.
 
 ## Verified vs not
 - M02 (user run, 2750 replays, 372 replays/s): circle-only 2/2 exact; circles+spinners 3/3 within +-2 misses; slider maps 2609/2743 (95.1%) within +-2 misses; 2721 complete plays, 27 incomplete. 121 replays skipped (no beatmap file), 2 failed (variable-rate mod).
 - M03 (user run 2026-10-26): build OK, 46 tests pass, `load`: 2871 plays (2844 pass / 27 fail), 2723 with PP, ~129.5 h, 2160680 hits in RAM, PP for 2750 plays in 1.5 s, load 1.11 s, startup 2.68 s. Window opens.
 - M03 verified: PP values vs in-game, totals and hours vs the user's knowledge, filter and click-through behaviour in the window.
-- M04 NOT verified (not compiled, not run): build, the 8 new unit tests in stats/heatmap.rs, and all five acceptance tests in the window.
+- M04 NOT verified (not compiled, not run): build, the 8 unit tests in stats/heatmap.rs, and all five acceptance tests in the window.
 - M04 approximation: click density places clicks by the cursor at the object time, not at the exact click frame.
+- M05 (user run 2026-10-27): build OK, 4 unit tests in stats/keys.rs pass, window opens. NOT verified: the 3 acceptance tests in the window (test 2 needs the user's own known values).
