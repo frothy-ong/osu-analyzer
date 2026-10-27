@@ -1,8 +1,8 @@
 # NOTES
 Claude reads this first. The user updates it when stopping.
 
-Current milestone: M05
+Current milestone: M06
 Status: not started
 Last command: cargo run --release
 Last error: (none)
-Next step: start milestones/M05-key-graphs.md
+Next step: start milestones/M06-playstyle-radar.md
